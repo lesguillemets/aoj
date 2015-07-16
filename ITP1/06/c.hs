@@ -28,7 +28,7 @@ readline = (\[x,y,z,w] -> (x,y,z,w+1)) . map (subtract 1 . read) . words
 -- let's see how iterative haskell can be!
 showRooms :: A.UArray Room Int -> [String]
 showRooms ls = let dats = takeEvery (floors*rooms) . map show $ A.elems ls in
-    intercalate [replicate 20 '#'] . map (map unwords . takeEvery rooms) $ dats
+    intercalate [replicate 20 '#'] . map (map (concatMap (' ':)) . takeEvery rooms) $ dats
 
         
 takeEvery :: Int -> [a] -> [[a]]
