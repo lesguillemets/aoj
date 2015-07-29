@@ -1,12 +1,10 @@
-{-# LANGUAGE OverloadedStrings #-}
-import qualified Data.ByteString.Char8 as BC
-import Data.ByteString.Char8 (ByteString)
-pTa :: ByteString -> ByteString
-pTa = BC.intercalate " " . map (
-        \c -> case c of
-                    "apple" -> "peach"
-                    "peach" -> "apple"
-                    s -> s
-                    ) . BC.split ' '
+pTa :: String -> String
+pTa [] = []
+-- somewhat weird
+pTa v = case splitAt 5 v of
+            ("apple",s) -> "peach" ++ pTa s
+            ("peach", s) -> "apple" ++ pTa s
+            _ -> let (pr, po) = break (\c -> (c == 'a') || (c == 'p')) (tail v)
+                     in head v : pr ++ pTa po
 
-main = BC.getLine >>= BC.putStrLn . pTa
+main = getLine >>= putStrLn . pTa
