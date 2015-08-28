@@ -1,5 +1,6 @@
 import Text.Parsec
-
+import Data.List
+-- learning parsec..
 -- {{{ data
 data Command = Forward Int
              | Backward Int
@@ -19,6 +20,19 @@ data Robot = Robot {
            _dir :: Vec,
            _field :: (Int,Int)
 }
+instance Show Robot where
+    show (Robot (x,y) _ _) = unwords. map show $ [x,y]
+initRobot :: Int -> Int -> Robot
+initRobot x y = Robot (1,1) (0,1) (x,y)
+
+(*:) :: Int -> Vec -> Vec
+n *: (x,y) = (n*x, n*y)
+(+:) :: Vec -> Vec -> Vec
+(x,y) +: (z,w) = (x+z,y+w)
+fitIn :: Int -> Int -> Int
+fitIn x w = if x <= 0 then 1 else min x w
+stayInside :: Vec -> Vec -> Vec
+stayInside (x,y) (w,h) = (x `fitIn` w, y `fitIn` h)
 
 data Input = Input Int Int [Command] deriving (Show)
 -- }}}
@@ -40,6 +54,19 @@ singleInput = Input <$> (spaces *> num)
 inputs :: Parsec String u [Input]
 inputs = (singleInput <* spaces) `manyTill` (char '0' *> spaces *> char '0')
 -- }}}
+-- {{{ solver
+applyCmd :: Robot -> Command -> Robot
+applyCmd r@(Robot l d s) (Forward n) =
+        r {_loc = (l +: (n *: d)) `stayInside` s}
+applyCmd r@(Robot l d s) (Backward n) =
+        r {_loc = (l +: ((-n) *: d)) `stayInside` s}
+applyCmd r@(Robot{_dir=d}) TurnRight = r {_dir = turnRight d}
+applyCmd r@(Robot{_dir=d}) TurnLeft = r {_dir = turnLeft d}
 
-main = readFile "./1104_check.txt" >>= parseTest inputs
+solve :: Input -> Robot
+solve (Input x y cmds) = let r = initRobot x y in
+    foldl' applyCmd r cmds
+-- }}}
+main = getContents >>=
+    mapM_ (print . solve) . (\(Right r) -> r) . parse inputs ""
 -- vim:fdm=marker
