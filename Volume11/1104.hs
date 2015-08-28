@@ -1,5 +1,9 @@
 import Text.Parsec
 import Data.List
+import qualified Data.ByteString as B
+import Data.ByteString (ByteString)
+import qualified Data.ByteString.Lazy.Char8 as BLC
+import Control.Applicative hiding ((<|>))
 -- learning parsec..
 -- {{{ data
 data Command = Forward Int
@@ -37,21 +41,21 @@ stayInside (x,y) (w,h) = (x `fitIn` w, y `fitIn` h)
 data Input = Input Int Int [Command] deriving (Show)
 -- }}}
 -- {{{ parser
-num :: Parsec String u Int
+num :: Parsec ByteString u Int
 num = read <$> many1 digit
 
-command :: Parsec String u Command
+command :: Parsec ByteString u Command
 command = Forward <$> (string "FORWARD" *> spaces *> num)
       <|> Backward <$> (string "BACKWARD" *> spaces *> num)
       <|> const TurnRight <$> string "RIGHT"
       <|> const TurnLeft <$> string "LEFT"
 
-singleInput :: Parsec String u Input
+singleInput :: Parsec ByteString u Input
 singleInput = Input <$> (spaces *> num)
                     <*> (spaces *> num <* spaces)
                     <*> command `sepEndBy` spaces
                     <* string "STOP"
-inputs :: Parsec String u [Input]
+inputs :: Parsec ByteString u [Input]
 inputs = (singleInput <* spaces) `manyTill` (char '0' *> spaces *> char '0')
 -- }}}
 -- {{{ solver
@@ -67,6 +71,7 @@ solve :: Input -> Robot
 solve (Input x y cmds) = let r = initRobot x y in
     foldl' applyCmd r cmds
 -- }}}
-main = getContents >>=
-    mapM_ (print . solve) . (\(Right r) -> r) . parse inputs ""
+main = B.getContents >>=
+    mapM_ (BLC.putStrLn . BLC.pack . show . solve)
+        . (\(Right r) -> r) . parse inputs ""
 -- vim:fdm=marker
