@@ -37,6 +37,6 @@ minimum :: (PrimMonad m, Ord a) => V.MVector (PrimState m) a -> m a
 minimum = liftM V.minimum . V.freeze
 
 main = do
-    (n:_) <- map read . words <$> getLine
-    BC.getContents >>= solve n . map parseLn . BC.lines
+    (n:q:_) <- map read . words <$> getLine
+    replicateM q BC.getLine >>= solve n . map parseLn
 
