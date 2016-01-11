@@ -1,4 +1,3 @@
-{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE OverloadedStrings #-}
 import qualified Data.ByteString.Char8 as BC
 import Data.ByteString (ByteString)
@@ -6,17 +5,25 @@ import qualified Data.Set as S
 -- Should I implement this myself?
 import Control.Monad
 
-data Command = Insert ByteString
-             | Find ByteString
+data Command = Insert Int
+             | Find Int
 
 fromString :: ByteString -> Command
 fromString s = let (cmd:str:_) = BC.words s
+                   n = fromStr str
                    in
                    case cmd of
-                        "insert" -> Insert str
-                        "find" -> Find str
+                        "insert" -> Insert n
+                        "find" -> Find n
 
-follow :: S.Set ByteString -> [Command] -> IO ()
+fromStr :: ByteString -> Int
+fromStr = BC.foldl' (\acc c -> 5*acc + case c of
+                                        'A' -> 1
+                                        'T' -> 2
+                                        'G' -> 3
+                                        'C' -> 4) 0
+
+follow :: S.Set Int -> [Command] -> IO ()
 follow s [] = return ()
 follow s (c:cs) = case c of
                        Insert str -> follow (S.insert str s) cs
@@ -28,5 +35,4 @@ follow s (c:cs) = case c of
 
 main = do
     n <- readLn
-    replicateM n BC.getLine >>= follow (S.empty) . map fromString
-
+    replicateM n BC.getLine >>= follow S.empty . map fromString
