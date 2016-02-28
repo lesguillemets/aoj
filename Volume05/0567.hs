@@ -22,3 +22,9 @@ solve basePrice toppingPrice baseCalories toppings' =
                    currentPrice + toppingPrice, currentCalories + t
                    ) ts
                 else p
+
+-- or maybe...
+solve' basePrice toppingPrice baseCalories =
+    maximum . map (uncurry div)
+        . scanl' (\(cc,cp) t -> (t+cc,cp+toppingPrice)) (baseCalories,basePrice)
+        . sortBy (flip compare)
